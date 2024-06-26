@@ -12,6 +12,11 @@ module.exports = function (io) {
       try {
         //userController.saveUser 함수 호출하여, 사용자를 데이터베이스에 저장하거나 업데이트 (await 키워드 사용해서, 비동기 작업 완료될 때까지 기다림)
         const user = await userController.saveUser(userName, socket.id); //사용자 이름과 소켓 ID를 사용하여 사용자 정보를 저장하거나 업데이트
+        const welcomeMessage = {
+          chat: `${user.name} is joined to this room`,
+          user: { id: null, name: "system" },
+        };
+        io.emit("message", welcomeMessage); //유저가 입장했음을 모두에게 알림
         cb({ ok: true, data: user });
       } catch (error) {
         cb({ ok: false, error: error.message });
