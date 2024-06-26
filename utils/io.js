@@ -1,3 +1,4 @@
+const chatController = require("../Controllers/chat.controller");
 const userController = require("../Controllers/user.controller");
 
 module.exports = function (io) {
@@ -12,6 +13,22 @@ module.exports = function (io) {
         //userController.saveUser 함수 호출하여, 사용자를 데이터베이스에 저장하거나 업데이트 (await 키워드 사용해서, 비동기 작업 완료될 때까지 기다림)
         const user = await userController.saveUser(userName, socket.id); //사용자 이름과 소켓 ID를 사용하여 사용자 정보를 저장하거나 업데이트
         cb({ ok: true, data: user });
+      } catch (error) {
+        cb({ ok: false, error: error.message });
+      }
+    });
+
+    //sendMessage가 왔을 때, 함수 실행
+    socket.on("sendMessage", async (message, cb) => {
+      try {
+        //socket id로 유저 찾기
+        const user = await userController.checkUser(socket.id);
+        //찾은 사용자 정보를 매개변수로 전달하여 메시지 저장
+        const newMessage = await chatController.saveChat(message, user);
+
+        //모든 클라이언트에게 저장된 새 메시지 브로드캐스트
+        io.emit("message", newMessage);
+        cb({ ok: true }); //콜백 함수 호출하여 클라이언트에게 작업이 성공적으로 완료되었음을 알림
       } catch (error) {
         cb({ ok: false, error: error.message });
       }
